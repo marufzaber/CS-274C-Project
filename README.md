@@ -10,3 +10,6 @@ References:
 4. https://arxiv.org/pdf/1906.11783.pdf
 5. http://www.diva-portal.org/smash/record.jsf?pid=diva2%3A1354738&dswid=157
 
+
+Replace the line `pandas` in fma requirements.txt with:
+pandas~=0.22.0
