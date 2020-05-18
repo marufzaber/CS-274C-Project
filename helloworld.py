@@ -167,6 +167,8 @@ model.add(Dense(output_dim=100, input_shape=loader.shape))
 model.add(Activation("relu"))
 model.add(Dense(output_dim=100))
 model.add(Activation("relu"))
+model.add(Dense(output_dim=100))
+model.add(Activation("relu"))
 model.add(Dense(output_dim=labels_onehot.shape[1]))
 model.add(Activation("softmax"))
 #
