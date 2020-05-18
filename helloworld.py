@@ -85,6 +85,15 @@ tracks.shape, features.shape, echonest.shape
 
 labels_onehot = LabelBinarizer().fit_transform(tracks['track', 'genre_top'])
 labels_onehot = pd.DataFrame(labels_onehot, index=tracks.index)
+import pdb; pdb.set_trace()
+# def fake_labels(x):
+#     fake = np.zeros(x.shape)
+#     fake[0] = 1
+#     return pd.Series(fake)
+#labels_onehot = labels_onehot.apply(fake_labels, axis=1)
+#fake_labels = np.zeros(labels_onehot.shape)
+#fake_labels[:, 1] = np.ones(fake_labels.shape[1])
+#labels_onehot = pd.DataFrame(data=fake_labels)
 
 train = tracks.index[tracks['set', 'split'] == 'training']
 val = tracks.index[tracks['set', 'split'] == 'validation']
@@ -120,7 +129,7 @@ loader = utils.FfmpegLoader(sampling_rate=2000)
 #SampleLoader = utils.build_sample_loader(AUDIO_DIR, labels_onehot, loader)
 print('Dimensionality: {}'.format(loader.shape))
 SampleLoader = utils.build_sample_loader(AUDIO_DIR, labels_onehot, utils.FfmpegLoader())
-sl = SampleLoader(train, batch_size=1000)
+sl = SampleLoader(train, batch_size=100)
 # while True:
 #     try:
 #         sl.__next__()[0]
@@ -144,7 +153,7 @@ data = sharedctypes.RawArray(ctypes.c_int, train)
 #         good_tids.append(tid)
 bad = tracks.index.isin([99134, 108925, 133297])
 training = tracks['set', 'split'] == 'training'
-train = tracks[training & ~bad].index
+train = tracks[training & ~bad].head(300).index
 #.loc[~good_tids].index
 
 import pdb; pdb.set_trace()
@@ -161,10 +170,10 @@ model.add(Activation("relu"))
 model.add(Dense(output_dim=labels_onehot.shape[1]))
 model.add(Activation("softmax"))
 #
-optimizer = keras.optimizers.SGD(lr=0.01, momentum=0, nesterov=False)
+optimizer = keras.optimizers.SGD(lr=0.01, momentum=0.9, nesterov=True)
 model.compile(optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
 #
-model.fit_generator(SampleLoader(train, batch_size=64), train.size, nb_epoch=2, **params)
+model.fit_generator(SampleLoader(train, batch_size=1000), train.size, nb_epoch=8, **params)
 loss = model.evaluate_generator(SampleLoader(val, batch_size=64), val.size, **params)
 loss = model.evaluate_generator(SampleLoader(test, batch_size=64), test.size, **params)
 Y = model.predict_generator(SampleLoader(test, batch_size=64), test.size, **params);
