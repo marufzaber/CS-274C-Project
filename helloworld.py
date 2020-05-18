@@ -6,6 +6,9 @@ import pandas as pd
 import keras
 from keras.layers import Activation, Dense, Conv1D, Conv2D, MaxPooling1D, Flatten, Reshape
 from sklearn.preprocessing import MultiLabelBinarizer, LabelEncoder, LabelBinarizer, StandardScaler
+import multiprocessing.sharedctypes as sharedctypes
+import ctypes
+
 
 from fma import utils
 
@@ -65,13 +68,15 @@ AUDIO_META_DIR = os.environ.get('AUDIO_META_DIR')
                                     #
 tracks = utils.load(os.path.join(AUDIO_META_DIR, 'tracks.csv'))
 small = tracks['set', 'subset'] <= 'small'
-tracks = tracks[small]
+have_genres = tracks['track', 'genre_top'] != 'MISSING'
+longer = tracks['track', 'duration'] >= 100
+tracks = tracks[small & have_genres & longer]
 features = utils.load(os.path.join(AUDIO_META_DIR, 'features.csv'))
 #small = features['set', 'subset'] <= 'small'
-features = features[small]
+features = features[small & have_genres & longer]
 echonest = utils.load(os.path.join(AUDIO_META_DIR, 'echonest.csv'))
 #small = echonest['set', 'subset'] <= 'small'
-echonest = echonest[small]
+echonest = echonest[small & have_genres & longer]
 
 np.testing.assert_array_equal(features.index, tracks.index)
 assert echonest.index.isin(tracks.index).all()
@@ -81,7 +86,6 @@ tracks.shape, features.shape, echonest.shape
 labels_onehot = LabelBinarizer().fit_transform(tracks['track', 'genre_top'])
 labels_onehot = pd.DataFrame(labels_onehot, index=tracks.index)
 
-import pdb; pdb.set_trace()
 train = tracks.index[tracks['set', 'split'] == 'training']
 val = tracks.index[tracks['set', 'split'] == 'validation']
 test = tracks.index[tracks['set', 'split'] == 'test']
@@ -97,7 +101,6 @@ print('Top genres ({}): {}'.format(len(genres), genres))
 # Just be sure that everything is fine. Multiprocessing is tricky to debug.
 utils.FfmpegLoader().load(utils.get_audio_path(AUDIO_DIR, 2))
 SampleLoader = utils.build_sample_loader(AUDIO_DIR, labels_onehot, utils.FfmpegLoader())
-import pdb; pdb.set_trace()
 
 # while True:
 #     try:
@@ -114,13 +117,40 @@ params = {'pickle_safe': True, 'nb_worker': NB_WORKER, 'max_q_size': 10}
 
 
 loader = utils.FfmpegLoader(sampling_rate=2000)
-SampleLoader = utils.build_sample_loader(AUDIO_DIR, labels_onehot, loader)
+#SampleLoader = utils.build_sample_loader(AUDIO_DIR, labels_onehot, loader)
 print('Dimensionality: {}'.format(loader.shape))
-#
+SampleLoader = utils.build_sample_loader(AUDIO_DIR, labels_onehot, utils.FfmpegLoader())
+sl = SampleLoader(train, batch_size=1000)
+# while True:
+#     try:
+#         sl.__next__()[0]
+#     except StopIteration:
+#         break
+#     except:
+#         import pdb; pdb.set_trace()
+
+
+floader = utils.FfmpegLoader(sampling_rate=2000)
+X = np.empty((10000, *floader.shape))
+data = sharedctypes.RawArray(ctypes.c_int, train)
+good_tids = []
+for i, tid in enumerate(np.ctypeslib.as_array(data)):
+    try:
+        ffmpegout = floader.load(utils.get_audio_path(AUDIO_DIR, tid))
+    except Exception as e:
+        continue
+    else:
+        good_tids.append(tid)
+train = tracks.loc[good_tids].index
+
+import pdb; pdb.set_trace()
+
+
+#SampleLoader(train, batch_size=2).__next__()[0].shape
 keras.backend.clear_session()
 
 model = keras.models.Sequential()
-model.add(Dense(output_dim=1000, input_shape=loader.shape))
+model.add(Dense(output_dim=100, input_shape=loader.shape))
 model.add(Activation("relu"))
 model.add(Dense(output_dim=100))
 model.add(Activation("relu"))
@@ -131,9 +161,9 @@ optimizer = keras.optimizers.SGD(lr=0.1, momentum=0.9, nesterov=True)
 model.compile(optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
 #
 model.fit_generator(SampleLoader(train, batch_size=64), train.size, nb_epoch=2, **params)
-# loss = model.evaluate_generator(SampleLoader(val, batch_size=64), val.size, **params)
-# loss = model.evaluate_generator(SampleLoader(test, batch_size=64), test.size, **params)
-# #Y = model.predict_generator(SampleLoader(test, batch_size=64), test.size, **params);
+loss = model.evaluate_generator(SampleLoader(val, batch_size=64), val.size, **params)
+loss = model.evaluate_generator(SampleLoader(test, batch_size=64), test.size, **params)
+Y = model.predict_generator(SampleLoader(test, batch_size=64), test.size, **params);
 #
 # loss
 
