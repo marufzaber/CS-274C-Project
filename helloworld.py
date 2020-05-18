@@ -69,14 +69,14 @@ AUDIO_META_DIR = os.environ.get('AUDIO_META_DIR')
 tracks = utils.load(os.path.join(AUDIO_META_DIR, 'tracks.csv'))
 small = tracks['set', 'subset'] <= 'small'
 have_genres = tracks['track', 'genre_top'] != 'MISSING'
-longer = tracks['track', 'duration'] >= 100
-tracks = tracks[small & have_genres & longer]
+#longer = tracks['track', 'duration'] >= 100
+tracks = tracks[small & have_genres]
 features = utils.load(os.path.join(AUDIO_META_DIR, 'features.csv'))
 #small = features['set', 'subset'] <= 'small'
-features = features[small & have_genres & longer]
+features = features[small & have_genres]
 echonest = utils.load(os.path.join(AUDIO_META_DIR, 'echonest.csv'))
 #small = echonest['set', 'subset'] <= 'small'
-echonest = echonest[small & have_genres & longer]
+echonest = echonest[small & have_genres]
 
 np.testing.assert_array_equal(features.index, tracks.index)
 assert echonest.index.isin(tracks.index).all()
@@ -133,15 +133,19 @@ sl = SampleLoader(train, batch_size=1000)
 floader = utils.FfmpegLoader(sampling_rate=2000)
 X = np.empty((10000, *floader.shape))
 data = sharedctypes.RawArray(ctypes.c_int, train)
-good_tids = []
-for i, tid in enumerate(np.ctypeslib.as_array(data)):
-    try:
-        ffmpegout = floader.load(utils.get_audio_path(AUDIO_DIR, tid))
-    except Exception as e:
-        continue
-    else:
-        good_tids.append(tid)
-train = tracks.loc[good_tids].index
+# good_tids = []
+# for i, tid in enumerate(np.ctypeslib.as_array(data)):
+#     try:
+#         ffmpegout = floader.load(utils.get_audio_path(AUDIO_DIR, tid))
+#     except Exception as e:
+#         with open("bad_tids.txt", "a") as badf:
+#             badf.write(str(tid) + "\n")
+#     else:
+#         good_tids.append(tid)
+bad = tracks.index.isin([99134, 108925, 133297])
+training = tracks['set', 'split'] == 'training'
+train = tracks[training & ~bad].index
+#.loc[~good_tids].index
 
 import pdb; pdb.set_trace()
 
@@ -157,7 +161,7 @@ model.add(Activation("relu"))
 model.add(Dense(output_dim=labels_onehot.shape[1]))
 model.add(Activation("softmax"))
 #
-optimizer = keras.optimizers.SGD(lr=0.1, momentum=0.9, nesterov=True)
+optimizer = keras.optimizers.SGD(lr=0.01, momentum=0, nesterov=False)
 model.compile(optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
 #
 model.fit_generator(SampleLoader(train, batch_size=64), train.size, nb_epoch=2, **params)
