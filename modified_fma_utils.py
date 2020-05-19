@@ -13,8 +13,8 @@ import ast
 
 # Number of samples per 30s audio clip.
 # TODO: fix dataset to be constant.
-NB_AUDIO_SAMPLES = 10000
-SAMPLING_RATE = 44100
+NB_AUDIO_SAMPLES = 1000
+SAMPLING_RATE = 2000
 
 # Load the environment from the .env file.
 dotenv.load_dotenv(dotenv.find_dotenv())
@@ -211,7 +211,6 @@ def load(filepath):
         SUBSETS = ('small', 'medium', 'large')
         tracks['set', 'subset'] = tracks['set', 'subset'].astype(
                 pd.CategoricalDtype(categories=SUBSETS, ordered=True))
-        import pdb; pdb.set_trace()
         #tracks['set', 'subset'] = tracks['set', 'subset'].cat.reorder_categories(SUBSETS, inplace=True)
 
         COLUMNS = [('track', 'genre_top'), ('track', 'license'),
@@ -330,12 +329,9 @@ def build_sample_loader(audio_dir, Y, loader):
                 tids = np.array(self.tids[batch_current:batch_current+batch_size])
 
             for i, tid in enumerate(tids):
-                try:
-                    self.X[i] = self.loader.load(get_audio_path(audio_dir, tid))
-                    self.Y[i] = Y.loc[tid]
-                except:
-                    #import pdb; pdb.set_trace()
-                    continue
+                ffmpegout = self.loader.load(get_audio_path(audio_dir, tid))
+                self.X[i] = ffmpegout
+                self.Y[i] = Y.loc[tid]
 
             with self.lock2:
                 while (batch_current - self.batch_rearmost.value) % self.tids.size > self.batch_size:
