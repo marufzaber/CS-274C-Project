@@ -3,8 +3,8 @@ import os
 
 import numpy as np
 import pandas as pd
-import keras
-from keras.layers import Activation, Dense, Conv1D, Conv2D, MaxPooling1D, Flatten, Reshape
+import tensorflow.keras as keras
+from tensorflow.keras.layers import Activation, Dense, Conv1D, Conv2D, MaxPooling1D, Flatten, Reshape
 from sklearn.preprocessing import MultiLabelBinarizer, LabelEncoder, LabelBinarizer, StandardScaler
 import multiprocessing.sharedctypes as sharedctypes
 import ctypes
@@ -59,7 +59,7 @@ def train(num_epochs, batch_size, learning_rate, job_dir):
     #
     # Keras parameters.
     NB_WORKER = len(os.sched_getaffinity(0))  # number of usables CPUs
-    params = {'pickle_safe': True, 'nb_worker': NB_WORKER, 'max_q_size': 10}
+    params = {'workers': NB_WORKER, 'max_queue_size': 10}
 
 
     loader = utils.FfmpegLoader(sampling_rate=2000)
@@ -81,17 +81,17 @@ def train(num_epochs, batch_size, learning_rate, job_dir):
     keras.backend.clear_session()
 
     model = keras.models.Sequential()
-    model.add(Dense(output_dim=100, input_shape=loader.shape))
+    model.add(Dense(100, input_shape=loader.shape))
     model.add(Activation("relu"))
-    model.add(Dense(output_dim=100))
+    model.add(Dense(100))
     model.add(Activation("relu"))
-    model.add(Dense(output_dim=labels_onehot.shape[1]))
+    model.add(Dense(labels_onehot.shape[1]))
     model.add(Activation("softmax"))
     #
     optimizer = keras.optimizers.SGD(lr=learning_rate)#, momentum=0.9, nesterov=True)
     model.compile(optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
     #
-    model.fit_generator(SampleLoader(train, batch_size=batch_size), train.size, nb_epoch=num_epochs, **params)
+    model.fit_generator(SampleLoader(train, batch_size=batch_size), train.size, epochs=num_epochs, **params)
 
     model.save(os.path.join(job_dir, 'model-export'), save_format='tf')
     #loss = model.evaluate_generator(SampleLoader(val, batch_size=64), val.size, **params)
