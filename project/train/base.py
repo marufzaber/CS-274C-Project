@@ -40,7 +40,7 @@ def preprocess():
 
     bad = tracks.index.isin([99134, 108925, 133297])
     training = tracks['set', 'split'] == 'training'
-    train = tracks[training & ~bad].head(100).index
+    train = tracks[training & ~bad].head(300).index
 
 
     return train, val, test, labels_onehot
