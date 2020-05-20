@@ -1,7 +1,7 @@
 import argparse
 import os
 
-from . import helloworld
+from . import feedforward
 
 
 
@@ -34,10 +34,18 @@ def get_args():
         default=.01,
         type=float,
         help='learning rate for gradient descent, default=.01')
+    parser.add_argument(
+        '--nw-type',
+        default='feedforward',
+        type=str,
+        help='type of model to run'
+    )
     args, _ = parser.parse_known_args()
     return args
 
 
 if __name__ == "__main__":
     args = get_args()
-    helloworld.train(args.num_epochs, args.batch_size, args.learning_rate, args.job_dir)
+    # TODO: Switch based on --nw-type arg
+    model_to_use = feedforward
+    model_to_use.train(args.num_epochs, args.batch_size, args.learning_rate, args.job_dir)

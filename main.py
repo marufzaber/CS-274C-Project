@@ -1,4 +1,4 @@
-from project.train import helloworld
+from project.train import feedforward
 
 if __name__ == '__main__':
-    helloworld.train(16, 10, 0.01, 'model_output')
+    feedforward.train(16, 10, 0.01, 'model_output')
