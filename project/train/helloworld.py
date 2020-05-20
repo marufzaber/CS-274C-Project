@@ -16,18 +16,15 @@ AUDIO_DIR = os.environ.get('AUDIO_DIR')
 AUDIO_META_DIR = os.environ.get('AUDIO_META_DIR')
 
 
-def train(num_epochs, batch_size, learning_rate, job_dir):
-                                        #
+def preprocess():
+                                       #
     tracks = utils.load(os.path.join(AUDIO_META_DIR, 'tracks.csv'))
     small = tracks['set', 'subset'] <= 'small'
     have_genres = tracks['track', 'genre_top'] != 'MISSING'
-    #longer = tracks['track', 'duration'] >= 100
     tracks = tracks[small & have_genres]
     features = utils.load(os.path.join(AUDIO_META_DIR, 'features.csv'))
-    #small = features['set', 'subset'] <= 'small'
     features = features[small & have_genres]
     echonest = utils.load(os.path.join(AUDIO_META_DIR, 'echonest.csv'))
-    #small = echonest['set', 'subset'] <= 'small'
     echonest = echonest[small & have_genres]
 
     np.testing.assert_array_equal(features.index, tracks.index)
@@ -45,16 +42,16 @@ def train(num_epochs, batch_size, learning_rate, job_dir):
 
     print('{} training examples, {} validation examples, {} testing examples'.format(*map(len, [train, val, test])))
 
-    genres = list(LabelEncoder().fit(tracks['track', 'genre_top']).classes_)
-    #genres = list(tracks['track', 'genre_top'].unique())
-    print('Top genres ({}): {}'.format(len(genres), genres))
-    #genres = list(MultiLabelBinarizer().fit(tracks['track', 'genres_all']).classes_)
-    #print('All genres ({}): {}'.format(len(genres), genres))
+    bad = tracks.index.isin([99134, 108925, 133297])
+    training = tracks['set', 'split'] == 'training'
+    train = tracks[training & ~bad].head(100).index
 
-    # Just be sure that everything is fine. Multiprocessing is tricky to debug.
-    utils.FfmpegLoader().load(utils.get_audio_path(AUDIO_DIR, 2))
-    SampleLoader = utils.build_sample_loader(AUDIO_DIR, labels_onehot, utils.FfmpegLoader())
 
+    return train, val, test, labels_onehot
+
+
+def train(num_epochs, batch_size, learning_rate, job_dir):
+    train, val, test, labels_onehot = preprocess()
 
     #
     # Keras parameters.
@@ -73,9 +70,6 @@ def train(num_epochs, batch_size, learning_rate, job_dir):
     X = np.empty((10000, *floader.shape))
     data = sharedctypes.RawArray(ctypes.c_int, train)
 
-    bad = tracks.index.isin([99134, 108925, 133297])
-    training = tracks['set', 'split'] == 'training'
-    train = tracks[training & ~bad].head(100).index
 
 
     keras.backend.clear_session()
