@@ -29,7 +29,6 @@ def train(num_epochs, batch_size, learning_rate, job_dir):
     model = keras.Sequential(
         [Dense(100, input_shape=loader.shape, activation="relu"),
         Dense(100, activation="relu"),
-        Dense(100, activation="relu"),
         Dense(labels_onehot.shape[1], activation="softmax")]
     )
     #
@@ -44,7 +43,7 @@ def train(num_epochs, batch_size, learning_rate, job_dir):
     optimizer = keras.optimizers.SGD(lr=learning_rate)#, momentum=0.9, nesterov=True)
     model.compile(optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
     #
-    model.fit(SampleLoader(train, batch_size=batch_size), epochs=num_epochs, **params)
+    model.fit_generator(SampleLoader(train, batch_size=batch_size), train.size/batch_size, epochs=num_epochs, **params)
 
     model.save(os.path.join(job_dir, 'model-export'), save_format='tf')
     #loss = model.evaluate_generator(SampleLoader(val, batch_size=64), val.size, **params)
