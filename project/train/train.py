@@ -1,7 +1,7 @@
 import argparse
 import os
 
-from . import feedforward
+from . import cnn
 
 
 
@@ -47,5 +47,5 @@ def get_args():
 if __name__ == "__main__":
     args = get_args()
     # TODO: Switch based on --nw-type arg
-    model_to_use = feedforward
+    model_to_use = cnn
     model_to_use.train(args.num_epochs, args.batch_size, args.learning_rate, args.job_dir)

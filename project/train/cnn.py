@@ -56,7 +56,7 @@ def train(num_epochs, batch_size, learning_rate, job_dir):
     #
     shape = [480, 640, 4]
     model = keras.Sequential()
-    model.add(Conv2D(input_shape=shape, filters=64, kernel_size=5, activation="relu"))
+    model.add(Conv2D(input_shape=shape, filters=8, kernel_size=5, activation="relu"))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Flatten())
     model.add(Dense(100, activation="relu"))

@@ -14,7 +14,6 @@ AUDIO_META_DIR = os.environ.get('AUDIO_META_DIR', f'{JOB_DIR}/fma_metadata/fma_m
 
 
 def preprocess():
-                                       #
     tracks = utils.load(os.path.join(AUDIO_META_DIR, 'tracks.csv'))
     small = tracks['set', 'subset'] <= 'small'
     have_genres = tracks['track', 'genre_top'] != 'MISSING'
@@ -41,7 +40,7 @@ def preprocess():
 
     bad = tracks.index.isin([2, 56, 99134, 108925, 133297])
     training = tracks['set', 'split'] == 'training'
-    train = tracks[training & ~bad].head(300).index
+    train = tracks[training & ~bad].head(100).index
 
 
     return train, val, test, labels_onehot
