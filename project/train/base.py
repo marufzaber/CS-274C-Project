@@ -8,8 +8,9 @@ from sklearn.preprocessing import MultiLabelBinarizer, LabelEncoder, LabelBinari
 
 from project.fma import utils
 
-AUDIO_DIR = os.environ.get('AUDIO_DIR')
-AUDIO_META_DIR = os.environ.get('AUDIO_META_DIR')
+JOB_DIR = os.environ.get('JOB_DIR', 'gs://helloworld-ucics274c-df-mybucket/keras-job-dir')
+AUDIO_DIR = os.environ.get('AUDIO_DIR', f'{JOB_DIR}/fma_small/fma_small')
+AUDIO_META_DIR = os.environ.get('AUDIO_META_DIR', f'{JOB_DIR}/fma_metadata/fma_metadata')
 
 
 def preprocess():

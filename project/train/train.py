@@ -22,13 +22,13 @@ def get_args():
     parser.add_argument(
         '--num-epochs',
         type=int,
-        default=16,
-        help='number of times to go through the data, default=20')
+        default=2,
+        help='number of times to go through the data, default=2')
     parser.add_argument(
         '--batch-size',
         default=100,
         type=int,
-        help='number of records to read during each training step, default=128')
+        help='number of records to read during each training step, default=100')
     parser.add_argument(
         '--learning-rate',
         default=.01,

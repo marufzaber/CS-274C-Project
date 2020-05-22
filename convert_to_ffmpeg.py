@@ -8,6 +8,7 @@ import librosa
 import librosa.display
 import numpy as np
 import pandas as pd
+import subprocess as sp
 from audioread.exceptions import NoBackendError
 
 # Set the environment variable AUDIO_DIR before running this script.
@@ -15,24 +16,38 @@ from audioread.exceptions import NoBackendError
 # and store it in the same directory
 
 AUDIO_DIR = os.environ.get('AUDIO_DIR')
+SAMPLING_RATE = 2000
 
-def convert_to_mel_spectrogram(file_name_absolute):
+def convert_to_ffmpeg(file_name_absolute):
 	directory = os.path.dirname(file_name_absolute)
 	file_name = os.path.splitext(os.path.basename(file_name_absolute))[0]
-	mel_spectrogram_absolute_path = os.path.join(directory, file_name + ".png")
-	if os.path.exists(mel_spectrogram_absolute_path):
+	ffmpeg_absolute_path = os.path.join(directory, file_name + ".fmpg")
+	if os.path.exists(ffmpeg_absolute_path):
 		# Don't bother redoing
 		return
 	else:
 		print(f"Trying {file_name_absolute}")
 
-	y, sr = librosa.load(file_name_absolute)
-	spect = librosa.feature.melspectrogram(y=y, sr=sr,n_fft=2048, hop_length=512)
-	spect = librosa.power_to_db(spect, ref=np.max)
+	command = ['ffmpeg',
+			   '-i', file_name_absolute,
+			   '-f', 's16le',
+			   '-acodec', 'pcm_s16le',
+			   '-ac', '1']  # channels: 2 for stereo, 1 for mono
+	command.extend(['-ar', str(SAMPLING_RATE)])
+	command.append('-')
+	# 30s at 44.1 kHz ~= 1.3e6
+	with open(ffmpeg_absolute_path, 'w') as outf:
+		sp.run(command, stdout=outf, bufsize=10 ** 7, stderr=sp.DEVNULL, check=True)
 
-	librosa.display.specshow(spect)
-	pylab.savefig(mel_spectrogram_absolute_path, bbox_inches=None, pad_inches=0)
-	pylab.close()
+	#return np.fromstring(proc.stdout, dtype="int16")
+
+	# y, sr = librosa.load(file_name_absolute)
+	# spect = librosa.feature.melspectrogram(y=y, sr=sr,n_fft=2048, hop_length=512)
+	# spect = librosa.power_to_db(spect, ref=np.max)
+	#
+	# librosa.display.specshow(spect)
+	# pylab.savefig(mel_spectrogram_absolute_path, bbox_inches=None, pad_inches=0)
+	# pylab.close()
 
 if __name__ == "__main__":
 	try:
@@ -41,7 +56,7 @@ if __name__ == "__main__":
 				#if os.path.exists(os.path.join(root, file.replace(".mp3", ".png")))
 				if file.endswith(".mp3"):
 					try:
-						convert_to_mel_spectrogram(os.path.join(root, file))
+						convert_to_ffmpeg(os.path.join(root, file))
 					except NoBackendError:
 						print(f"Error on file {file}")
 	except FileNotFoundError:
