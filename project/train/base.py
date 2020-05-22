@@ -39,7 +39,7 @@ def preprocess():
 
     print('{} training examples, {} validation examples, {} testing examples'.format(*map(len, [train, val, test])))
 
-    bad = tracks.index.isin([99134, 108925, 133297])
+    bad = tracks.index.isin([2, 56, 99134, 108925, 133297])
     training = tracks['set', 'split'] == 'training'
     train = tracks[training & ~bad].head(300).index
 

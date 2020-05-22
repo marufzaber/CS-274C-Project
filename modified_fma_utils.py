@@ -1,4 +1,5 @@
 import dotenv
+import ffmpeg
 import pydot
 import requests
 import numpy as np
@@ -224,9 +225,9 @@ def load(filepath):
         return tracks
 
 
-def get_audio_path(audio_dir, track_id):
+def get_audio_path(audio_dir, track_id, extension="mp3"):
     tid_str = '{:06d}'.format(track_id)
-    return os.path.join(audio_dir, tid_str[:3], tid_str + '.mp3')
+    return os.path.join(audio_dir, tid_str[:3], tid_str + f'.{extension}')
 
 
 class Loader:
@@ -274,21 +275,28 @@ class FfmpegLoader(RawAudioLoader):
     def _load(self, filepath):
         """Fastest and less CPU intensive loading method."""
         import subprocess as sp
-        command = ['ffmpeg',
-                   '-i', filepath,
-                   '-f', 's16le',
-                   '-acodec', 'pcm_s16le',
-                   '-ac', '1']  # channels: 2 for stereo, 1 for mono
-        if self.sampling_rate != SAMPLING_RATE:
-            command.extend(['-ar', str(self.sampling_rate)])
-        command.append('-')
-        # 30s at 44.1 kHz ~= 1.3e6
-        proc = sp.run(command, stdout=sp.PIPE, bufsize=10**7, stderr=sp.DEVNULL, check=True)
+        # return np.fromstring(ffmpeg.input(
+        #     filepath,
+        #     fmt='s16le',
+        #     acodec='pcm_s16le',
+        #     ac='1',
+        #     ar=str(self.sampling_rate)
+        # # ), dtype="int16")
+        # command = ['ffmpeg',
+        #            '-i', filepath,
+        #            '-f', 's16le',
+        #            '-acodec', 'pcm_s16le',
+        #            '-ac', '1']  # channels: 2 for stereo, 1 for mono
+        # if self.sampling_rate != SAMPLING_RATE:
+        #     command.extend(['-ar', str(self.sampling_rate)])
+        # command.append('-')
+        # # 30s at 44.1 kHz ~= 1.3e6
+        # proc = sp.run(command, stdout=sp.PIPE, bufsize=10**7, stderr=sp.DEVNULL, check=True)
+        with open(filepath.replace('mp3', 'fmpg'), 'rb') as f:
+            return np.frombuffer(f.read(), dtype="int16")
 
-        return np.fromstring(proc.stdout, dtype="int16")
 
-
-def build_sample_loader(audio_dir, Y, loader):
+def build_sample_loader(audio_dir, Y, loader, extension="mp3"):
 
     class SampleLoader:
 
@@ -329,9 +337,15 @@ def build_sample_loader(audio_dir, Y, loader):
                 tids = np.array(self.tids[batch_current:batch_current+batch_size])
 
             for i, tid in enumerate(tids):
-                ffmpegout = self.loader.load(get_audio_path(audio_dir, tid))
+                # try:
+                ffmpegout = self.loader.load(get_audio_path(audio_dir, tid, extension=extension))
                 self.X[i] = ffmpegout
                 self.Y[i] = Y.loc[tid]
+                 # except:
+                #     import pdb; pdb.set_trace()
+                # # except Exception as e:
+                #     print(f'Exception raised while trying to load track for tid {tid}')
+                #     print(str(e))
 
             with self.lock2:
                 while (batch_current - self.batch_rearmost.value) % self.tids.size > self.batch_size:
@@ -342,6 +356,9 @@ def build_sample_loader(audio_dir, Y, loader):
                 self.batch_rearmost.value = batch_current
                 #import pdb; pdb.set_trace()
                 #print(self.Y[:batch_size])
+                # print(self.X[:batch_size])
+                # print(self.Y[:batch_size])
+                #return [(self.X[i], self.Y[i]) for i in range(batch_size)]
                 return self.X[:batch_size], self.Y[:batch_size]
             #import pdb; pdb.set_trace()
             #print("NONE")
