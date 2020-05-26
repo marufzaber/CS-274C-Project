@@ -6,7 +6,7 @@ from project.fma import utils
 import multiprocessing.sharedctypes as sharedctypes
 import ctypes
 import tensorflow.keras as keras
-from tensorflow.keras.layers import Activation, Dense, Conv1D, Conv2D, Conv3D, MaxPooling1D, MaxPooling2D, MaxPooling3D, Flatten, Reshape
+from tensorflow.keras.layers import Activation, Dense, Conv1D, Conv2D, Conv3D, AveragePooling1D, MaxPooling1D, MaxPooling2D, MaxPooling3D, Flatten, Reshape, BatchNormalization
 
 from .base import AUDIO_DIR, AUDIO_META_DIR, preprocess
 
@@ -14,10 +14,12 @@ from .base import AUDIO_DIR, AUDIO_META_DIR, preprocess
 class MelSpectrogramLoader(utils.RawAudioLoader):
     def __init__(self, *args, **kwargs):
         super(MelSpectrogramLoader, self).__init__(*args, **kwargs)
-        self.shape = [480, 640, 4]
+        #self.shape = [480, 640, 4]
+        self.shape = [480, 640]
 
     def _load(self, filepath):
         img3d = imageio.imread(filepath, format="PNG-PIL")
+        return np.average(img3d, axis=2).reshape([480, 640])
         return img3d
         # layer0 = img3d[:, :, 0]
         # layer1 = img3d[:, :, 1]
@@ -54,11 +56,24 @@ def train(num_epochs, batch_size, learning_rate, job_dir):
     #     Dense(labels_onehot.shape[1], activation="softmax")]
     # )
     #
-    shape = [480, 640, 4]
+    shape = [480, 640]
     model = keras.Sequential()
-    model.add(Conv2D(input_shape=shape, filters=8, kernel_size=5, activation="relu"))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Conv1D(input_shape=shape, filters=8, kernel_size=5, activation="relu"))
+    model.add(AveragePooling1D(pool_size=(2,)))
+    model.add(BatchNormalization())
+
+    model.add(Conv1D(filters=8, kernel_size=5, activation="relu"))
+    model.add(MaxPooling1D(pool_size=(2,)))
+    model.add(BatchNormalization())
+
+
+    #model.add(Flatten())
+    model.add(Conv1D(filters=8, kernel_size=5, activation="relu"))
+    model.add(MaxPooling1D(pool_size=(2,)))
+    model.add(BatchNormalization())
     model.add(Flatten())
+    model.add(Dense(100, activation="relu"))
+    model.add(Dense(100, activation="relu"))
     model.add(Dense(100, activation="relu"))
     model.add(Dense(labels_onehot.shape[1], activation="softmax"))
     # model = keras.models.Sequential()
@@ -69,16 +84,19 @@ def train(num_epochs, batch_size, learning_rate, job_dir):
     # model.add(Dense(labels_onehot.shape[1], activation="softmax"))
     # # model.add(Activation("softmax"))
     # #
-    optimizer = keras.optimizers.SGD(lr=learning_rate)#, momentum=0.9, nesterov=True)
+    optimizer = keras.optimizers.Adam(lr=learning_rate)#, momentum=0.9, nesterov=True)
     model.compile(optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
     #
     model.fit_generator(SampleLoader(train, batch_size=batch_size), train.size/batch_size, epochs=num_epochs, **params)
 
-    model.save(os.path.join(job_dir, 'model-export'), save_format='tf')
-    #loss = model.evaluate_generator(SampleLoader(val, batch_size=64), val.size, **params)
+    #model.save(os.path.join(job_dir, 'model-export'), save_format='tf')
+    acc = model.evaluate_generator(SampleLoader(val, batch_size=100), val.size, **params)
+    print( "**** VAL ACC ****")
+    print(acc)
+    #
     #loss = model.evaluate_generator(SampleLoader(test, batch_size=64), test.size, **params)
     #Y = model.predict_generator(SampleLoader(test, batch_size=64), test.size, **params);
     #
-    # loss
+    #loss
 
     #
