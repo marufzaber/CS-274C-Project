@@ -58,18 +58,18 @@ def train(num_epochs, batch_size, learning_rate, job_dir):
     #
     shape = [480, 640]
     model = keras.Sequential()
-    model.add(Conv1D(input_shape=shape, filters=8, kernel_size=5, activation="relu"))
-    model.add(AveragePooling1D(pool_size=(2,)))
+    model.add(Conv1D(input_shape=shape, filters=16, kernel_size=7, activation="relu"))
+    model.add(MaxPooling1D(pool_size=(3,)))
     model.add(BatchNormalization())
 
-    model.add(Conv1D(filters=8, kernel_size=5, activation="relu"))
-    model.add(MaxPooling1D(pool_size=(2,)))
+    model.add(Conv1D(filters=16, kernel_size=7, activation="relu"))
+    model.add(MaxPooling1D(pool_size=(3,)))
     model.add(BatchNormalization())
 
 
     #model.add(Flatten())
-    model.add(Conv1D(filters=8, kernel_size=5, activation="relu"))
-    model.add(MaxPooling1D(pool_size=(2,)))
+    model.add(Conv1D(filters=16, kernel_size=7, activation="relu"))
+    model.add(MaxPooling1D(pool_size=(3,)))
     model.add(BatchNormalization())
     model.add(Flatten())
     model.add(Dense(100, activation="relu"))
