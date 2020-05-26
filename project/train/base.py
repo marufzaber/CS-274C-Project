@@ -4,16 +4,38 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import MultiLabelBinarizer, LabelEncoder, LabelBinarizer, StandardScaler
 
-
+from tensorflow.io import gfile
 
 from project.fma import utils
 
-JOB_DIR = os.environ.get('JOB_DIR', 'gs://helloworld-ucics274c-df-mybucket/keras-job-dir')
-AUDIO_DIR = os.environ.get('AUDIO_DIR', f'{JOB_DIR}/fma_small/fma_small')
-AUDIO_META_DIR = os.environ.get('AUDIO_META_DIR', f'{JOB_DIR}/fma_metadata/fma_metadata')
+JOB_DIR = os.environ.get('JOB_DIR', 'keras-job-dir')
+#FULL_JOB_DIR = os.environ.get('FULL_JOB_DIR', 'gs://helloworld-ucics274c-df-mybucket/keras-job-dir')
+FULL_JOB_DIR = 'gs://helloworld-ucics274c-df-mybucket/keras-job-dir'
+# print("READING FILE")
+# print(gfile.listdir('.'))
+# print(gfile.listdir('gs://helloworld-ucics274c-df-mybucket'))
+# # print(gfile.listdir(JOB_DIR))
+# print(gfile.listdir(FULL_JOB_DIR))
+# # with utils.open_file('fma_metadata/fma_metadata.tracks.csv') as f:
+# #     print(f.readline())
+# with utils.open_file(f'{FULL_JOB_DIR}/fma_metadata/fma_metadata.tracks.csv') as f:
+#     print(f.readline())
+AUDIO_DIR = f'fma_small'
+AUDIO_META_DIR = f'fma_metadata/fma_metadata'
+#AUDIO_DIR = os.environ.get('AUDIO_DIR', f'{FULL_JOB_DIR}/fma_small')
+#AUDIO_META_DIR = os.environ.get('AUDIO_META_DIR', f'{FULL_JOB_DIR}/fma_metadata/fma_metadata')
+# with utils.open_file(f'{FULL_JOB_DIR}/fma_metadata/fma_metadata/tracks.csv') as f:
+#     print(f.readline())
+# filepath = f'{FULL_JOB_DIR}/fma_small/000/000002.png'
+# gfile.copy(filepath, 'tmp_audio.png', overwrite=True)
+# with utils.open_file(filepath, 'rb') as f:
+#     with open('tmp_audio.png', 'wb') as of:
+#         of.write(f.read())
+# import librosa
+# x, sr = librosa.load('tmp_audio.png', sr=None)
+# print(x)
 
-
-def preprocess():
+def preprocess(job_dir):
     tracks = utils.load(os.path.join(AUDIO_META_DIR, 'tracks.csv'))
     small = tracks['set', 'subset'] <= 'small'
     have_genres = tracks['track', 'genre_top'] != 'MISSING'
@@ -40,7 +62,7 @@ def preprocess():
 
     bad = tracks.index.isin([2, 56, 99134, 108925, 133297])
     training = tracks['set', 'split'] == 'training'
-    train = tracks[training & ~bad].head(100).index
+    train = tracks[training & ~bad].index
 
 
     return train, val, test, labels_onehot

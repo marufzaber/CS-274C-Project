@@ -34,7 +34,7 @@ class MelSpectrogramLoader(utils.RawAudioLoader):
 
 
 def train(num_epochs, batch_size, learning_rate, job_dir):
-    train, val, test, labels_onehot = preprocess()
+    train, val, test, labels_onehot = preprocess(job_dir)
 
     #
     # Keras parameters.
@@ -59,6 +59,7 @@ def train(num_epochs, batch_size, learning_rate, job_dir):
     model.add(Conv2D(input_shape=shape, filters=8, kernel_size=5, activation="relu"))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Flatten())
+    model.add(Dense(100, activation="relu"))
     model.add(Dense(100, activation="relu"))
     model.add(Dense(labels_onehot.shape[1], activation="softmax"))
     # model = keras.models.Sequential()

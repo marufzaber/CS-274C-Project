@@ -3,7 +3,7 @@ import os
 
 from . import cnn
 from . import feedforward
-from . import svm
+#from . import svm
 
 def get_args():
     """Argument parser.
@@ -39,7 +39,7 @@ def get_args():
     
     parser.add_argument(
         '--nw-type',
-        default='feedforward',
+        default='cnn',
         type=str,
         help='type of model to run'
     )
@@ -51,5 +51,5 @@ if __name__ == "__main__":
     args = get_args()
     # TODO: Switch based on --nw-type arg
 
-    model_to_use = args.nw_type
-    model_to_use.train(args.num_epochs, args.batch_size, args.learning_rate, args.job_dir)
+    model_to_use = cnn
+    cnn.train(args.num_epochs, args.batch_size, args.learning_rate, args.job_dir)
