@@ -87,10 +87,11 @@ def train(num_epochs, batch_size, learning_rate, job_dir):
     # model.add(BatchNormalization())
     model.add(Reshape([640, 480]))
     model.add(Conv1D(input_shape=shape, filters=60, kernel_size=5, activation="relu"))
-    model.add(Reshape([636, 60]))
 
     # model.add(Permute([2, 1]))
-    # model.add(MaxPooling1D(pool_size=(2,)))
+    model.add(MaxPooling1D(pool_size=(2,)))
+    model.add(Reshape([318, 30]))
+
     # model.add(Permute([2, 1]))
     #model.add(Permute([2, 1]))
 
@@ -127,7 +128,8 @@ def train(num_epochs, batch_size, learning_rate, job_dir):
     while (total_epochs < num_epochs):
         model.fit_generator(SampleLoader(train, batch_size=batch_size), train.size/batch_size, epochs=4, **params)
         acc = model.evaluate_generator(SampleLoader(val, batch_size=batch_size), val.size, **params)
-        total_epochs += 16
+        total_epochs += 4
+        print(f"***EPOCHS SO FAR***: {total_epochs}")
         print( "**** VAL ACC ****")
         print(acc)
 
