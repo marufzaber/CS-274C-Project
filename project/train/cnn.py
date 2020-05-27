@@ -65,15 +65,15 @@ def train(num_epochs, batch_size, learning_rate, job_dir):
     model.add(BatchNormalization())
     # model.add(Reshape([640, 64]))
     # model.add(Permute([2, 1]))
-    model.add(MaxPooling2D(pool_size=2))
+    model.add(MaxPooling2D(pool_size=(4,2)))
 
     model.add(Conv2D(filters=4, kernel_size=(4, 4), activation="relu"))
     model.add(BatchNormalization())
-    model.add(MaxPooling2D(pool_size=2))
+    model.add(MaxPooling2D(pool_size=(4,2)))
 
     model.add(Conv2D(filters=4, kernel_size=(3, 3), activation="relu"))
     model.add(BatchNormalization())
-    model.add(MaxPooling2D(pool_size=2))
+    model.add(MaxPooling2D(pool_size=(4,2)))
 
     # model.add(Conv2D(input_shape=shape, filters=4, kernel_size=(4, 4), activation="relu"))
     # model.add(BatchNormalization())
@@ -81,7 +81,7 @@ def train(num_epochs, batch_size, learning_rate, job_dir):
 
     # Permute and reshape for LSTM layer
     model.add(Permute([1, 3, 2]))
-    model.add(Reshape([57*4, 77]))
+    model.add(Reshape([6*4, 77]))
     #model.add(Reshape([238, 318, 4]))
     model.add(Permute([2, 1]))
 
@@ -105,7 +105,7 @@ def train(num_epochs, batch_size, learning_rate, job_dir):
     #model.add(Flatten(data_format="channels_last"))
     # model.add(Reshape([640, 1]))
     # model.add(Permute([2, 1]))
-    model.add(LSTM(64))
+    model.add(LSTM(64, input_shape=[77, 24]))
     model.add(Dense(64, activation="relu"))
     # model.add(Dense(100, activation="relu"))
     # model.add(Dense(100, activation="relu"))
