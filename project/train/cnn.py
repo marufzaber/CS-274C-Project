@@ -16,14 +16,15 @@ class MelSpectrogramLoader(utils.RawAudioLoader):
         super(MelSpectrogramLoader, self).__init__(*args, **kwargs)
         #self.shape = [480, 640, 4]
         #self.shape = [480, 640]
-        self.shape = [480, 640, 4]
+        self.shape = [640, 480, 1]
 
     def _load(self, filepath):
         img3d = imageio.imread(filepath, format="PNG-PIL")
         #return np.average(img3d, axis=2).reshape([480, 640]).T
         #return img3d
-        ret = img3d.transpose([0, 1, 2])
-        return ret
+        ret = img3d.transpose([1, 0, 2])
+        #return ret
+        return ret.mean(axis=2).reshape([640, 480, 1])
         # layer0 = img3d[:, :, 0]
         # layer1 = img3d[:, :, 1]
         # layer2 = img3d[:, :, 2]
@@ -59,35 +60,35 @@ def train(num_epochs, batch_size, learning_rate, job_dir):
     #     Dense(labels_onehot.shape[1], activation="softmax")]
     # )
     #
-    shape = [480, 640, 4]
+    shape = [640, 480, 1]
     model = keras.Sequential()
-    model.add(Conv2D(input_shape=shape, filters=4, kernel_size=(4, 4), activation="relu"))
-    model.add(BatchNormalization())
+    # model.add(Conv2D(input_shape=shape, filters=1, kernel_size=(5, 5), activation="relu"))
+    # model.add(BatchNormalization())
     # model.add(Reshape([640, 64]))
     # model.add(Permute([2, 1]))
-    model.add(MaxPooling2D(pool_size=(4,2)))
+    # model.add(MaxPooling2D(pool_size=(2,2)))
 
-    model.add(Conv2D(filters=4, kernel_size=(4, 4), activation="relu"))
-    model.add(BatchNormalization())
-    model.add(MaxPooling2D(pool_size=(4,2)))
-
-    model.add(Conv2D(filters=4, kernel_size=(3, 3), activation="relu"))
-    model.add(BatchNormalization())
-    model.add(MaxPooling2D(pool_size=(4,2)))
-
-    # model.add(Conv2D(input_shape=shape, filters=4, kernel_size=(4, 4), activation="relu"))
+    # model.add(Conv2D(filters=1, kernel_size=(4, 4), activation="relu"))
     # model.add(BatchNormalization())
-    # model.add(MaxPooling2D(pool_size=2))
+    # model.add(MaxPooling2D(pool_size=(4,4)))
+
+    # model.add(Conv2D(filters=1, kernel_size=(3, 3), activation="relu"))
+    # model.add(BatchNormalization())
+    # model.add(MaxPooling2D(pool_size=(2,2)))
 
     # Permute and reshape for LSTM layer
-    model.add(Permute([1, 3, 2]))
-    model.add(Reshape([6*4, 77]))
-    #model.add(Reshape([238, 318, 4]))
-    model.add(Permute([2, 1]))
+    #model.add(Permute([1, 3, 2]))
+    # model.add(Reshape([480, 640]))
+    #
+    # # model.add(Reshape([237, 317, 1]))
+    # model.add(Permute([2, 1]))
 
     # model.add(Conv1D(filters=16, kernel_size=(1,), activation="relu"))
     # model.add(BatchNormalization())
-    # model.add(Reshape([640, 16]))
+    model.add(Reshape([640, 480]))
+    model.add(Conv1D(input_shape=shape, filters=60, kernel_size=5, activation="relu"))
+    model.add(Reshape([636, 60]))
+
     # model.add(Permute([2, 1]))
     # model.add(MaxPooling1D(pool_size=(2,)))
     # model.add(Permute([2, 1]))
@@ -105,7 +106,8 @@ def train(num_epochs, batch_size, learning_rate, job_dir):
     #model.add(Flatten(data_format="channels_last"))
     # model.add(Reshape([640, 1]))
     # model.add(Permute([2, 1]))
-    model.add(LSTM(64, input_shape=[77, 24]))
+    model.add(LSTM(64))
+    #model.add(Flatten())
     model.add(Dense(64, activation="relu"))
     # model.add(Dense(100, activation="relu"))
     # model.add(Dense(100, activation="relu"))
