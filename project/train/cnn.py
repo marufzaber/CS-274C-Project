@@ -6,7 +6,7 @@ from project.fma import utils
 import multiprocessing.sharedctypes as sharedctypes
 import ctypes
 import tensorflow.keras as keras
-from tensorflow.keras.layers import Activation, Dense, Conv1D, Conv2D, Conv3D, LSTM, AveragePooling1D, MaxPooling1D, MaxPooling2D, MaxPooling3D, Flatten, Reshape,  Permute, BatchNormalization
+from tensorflow.keras.layers import Activation, Dense, Conv1D, Conv2D, Conv3D, LSTM, AveragePooling1D, MaxPooling1D, MaxPooling2D, MaxPooling3D, Flatten, Reshape,  Permute, BatchNormalization, Dropout
 
 from .base import AUDIO_DIR, AUDIO_META_DIR, preprocess
 
@@ -92,12 +92,17 @@ def train(num_epochs, batch_size, learning_rate, job_dir):
     # model.add(Permute([2, 1]))
     model.add(MaxPooling1D(pool_size=2))
 
-    model.add(Conv1D(input_shape=shape, filters=4, kernel_size=2, activation="relu"))
+    model.add(Conv1D(filters=4, kernel_size=2, activation="relu"))
     model.add(BatchNormalization())
 
     # model.add(Permute([2, 1]))
-    model.add(MaxPooling1D(pool_size=4))
+    model.add(MaxPooling1D(pool_size=2))
 
+    model.add(Conv1D(filters=4, kernel_size=2, activation="relu"))
+    model.add(BatchNormalization())
+    model.add(MaxPooling1D(pool_size=2))
+
+    model.add(Dropout(rate=0.25))
     #model.add(Reshape([79, 4]))
 
     # model.add(Permute([2, 1]))
@@ -117,7 +122,7 @@ def train(num_epochs, batch_size, learning_rate, job_dir):
     # model.add(Permute([2, 1]))
     model.add(LSTM(64))
     #model.add(Flatten())
-    model.add(Dense(32, activation="relu"))
+    model.add(Dense(16, activation="relu"))
     # model.add(Dense(100, activation="relu"))
     # model.add(Dense(100, activation="relu"))
     model.add(Dense(labels_onehot.shape[1], activation="softmax"))
