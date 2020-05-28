@@ -86,19 +86,19 @@ def train(num_epochs, batch_size, learning_rate, job_dir):
     # model.add(Conv1D(filters=16, kernel_size=(1,), activation="relu"))
     # model.add(BatchNormalization())
     model.add(Reshape([640, 480]))
-    model.add(Conv1D(input_shape=shape, filters=8, kernel_size=5, activation="relu"))
+    model.add(Conv1D(input_shape=shape, filters=4, kernel_size=3, activation="relu"))
     model.add(BatchNormalization())
 
     # model.add(Permute([2, 1]))
     model.add(MaxPooling1D(pool_size=2))
 
-    model.add(Conv1D(input_shape=shape, filters=16, kernel_size=2, activation="relu"))
+    model.add(Conv1D(input_shape=shape, filters=4, kernel_size=2, activation="relu"))
     model.add(BatchNormalization())
 
     # model.add(Permute([2, 1]))
-    model.add(MaxPooling1D(pool_size=2))
+    model.add(MaxPooling1D(pool_size=4))
 
-    model.add(Reshape([158, 16]))
+    #model.add(Reshape([79, 4]))
 
     # model.add(Permute([2, 1]))
     #model.add(Permute([2, 1]))
@@ -117,7 +117,7 @@ def train(num_epochs, batch_size, learning_rate, job_dir):
     # model.add(Permute([2, 1]))
     model.add(LSTM(64))
     #model.add(Flatten())
-    model.add(Dense(64, activation="relu"))
+    model.add(Dense(32, activation="relu"))
     # model.add(Dense(100, activation="relu"))
     # model.add(Dense(100, activation="relu"))
     model.add(Dense(labels_onehot.shape[1], activation="softmax"))
@@ -133,6 +133,11 @@ def train(num_epochs, batch_size, learning_rate, job_dir):
     model.compile(optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
     #
     total_epochs = 0
+
+    # decay_rate = 0.5
+    # learning_rate_fn = keras.optimizers.schedules.InverseTimeDecay(
+    # initial_learning_rate, decay_steps, decay_rate)
+
     while (total_epochs < num_epochs):
         model.fit_generator(SampleLoader(train, batch_size=batch_size), train.size/batch_size, epochs=4, **params)
         acc = model.evaluate_generator(SampleLoader(val, batch_size=batch_size), val.size, **params)
