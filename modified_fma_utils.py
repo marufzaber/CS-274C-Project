@@ -344,8 +344,8 @@ def build_sample_loader(audio_dir, Y, loader, extension="mp3"):
                 except Exception as e:
                     print(f'Exception raised while trying to load track for tid {tid}')
                     print(str(e))
-                    file = open('bad_tid.txt', 'w')                     
-                    file.write(str(tid))                       
+                    file = open('bad_tid.txt', 'a')                     
+                    file.write(str(tid) + "\n")                       
                     file.close() 
 
             with self.lock2:

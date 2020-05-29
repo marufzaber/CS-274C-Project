@@ -28,3 +28,7 @@ def train(num_epochs, batch_size, learning_rate, job_dir):
     keras.backend.clear_session()
 
     knn = KNeighborsClassifier(n_neighbors=7) 
+    knn_2.fit(predictions_1, y_test_2)
+
+    train_accuracy[i] = knn.score(X_train, y_train) 
+    test_accuracy[i] = knn.score(X_test, y_test) 
