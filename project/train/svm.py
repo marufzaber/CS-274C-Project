@@ -27,7 +27,7 @@ def train(num_epochs, batch_size, learning_rate, job_dir):
     model = keras.Sequential(
         [Dense(100, input_shape=loader.shape, activation="relu"),
         Dense(100, kernel_regularizer=l2(0.01)),
-        Dense(labels_onehot.shape[1], activation="linear")])
+        Dense(labels_onehot.shape[1], activation="softmax")])
 
     model.compile(optimizer='adadelta', loss='squared_hinge', metrics=['accuracy'])
 
@@ -37,4 +37,4 @@ def train(num_epochs, batch_size, learning_rate, job_dir):
 
     history_dict = history.history
 
-    history_dict.keys()
+    print(history_dict.keys())
