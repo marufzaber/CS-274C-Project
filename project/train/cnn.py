@@ -102,7 +102,7 @@ def train(num_epochs, batch_size, learning_rate, job_dir):
     model.add(BatchNormalization())
     model.add(MaxPooling1D(pool_size=2))
 
-    model.add(Dropout(rate=0.25))
+    model.add(Dropout(rate=0.5))
     #model.add(Reshape([79, 4]))
 
     # model.add(Permute([2, 1]))
