@@ -346,7 +346,7 @@ def build_sample_loader(audio_dir, Y, loader, extension="mp3"):
                     print(str(e))
                     file = open('bad_tid.txt', 'w')                     
                     file.write(str(tid))                       
-                    file1.close() 
+                    file.close() 
 
             with self.lock2:
                 while (batch_current - self.batch_rearmost.value) % self.tids.size > self.batch_size:
