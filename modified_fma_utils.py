@@ -337,15 +337,13 @@ def build_sample_loader(audio_dir, Y, loader, extension="mp3"):
                 tids = np.array(self.tids[batch_current:batch_current+batch_size])
 
             for i, tid in enumerate(tids):
-                # try:
-                ffmpegout = self.loader.load(get_audio_path(audio_dir, tid, extension=extension))
-                self.X[i] = ffmpegout
-                self.Y[i] = Y.loc[tid]
-                 # except:
-                #     import pdb; pdb.set_trace()
-                # # except Exception as e:
-                #     print(f'Exception raised while trying to load track for tid {tid}')
-                #     print(str(e))
+                try:
+                    ffmpegout = self.loader.load(get_audio_path(audio_dir, tid, extension=extension))
+                    self.X[i] = ffmpegout
+                    self.Y[i] = Y.loc[tid]
+                except Exception as e:
+                    print(f'Exception raised while trying to load track for tid {tid}')
+                    print(str(e))
 
             with self.lock2:
                 while (batch_current - self.batch_rearmost.value) % self.tids.size > self.batch_size:
