@@ -6,8 +6,10 @@ import multiprocessing.sharedctypes as sharedctypes
 import ctypes
 import tensorflow.keras as keras
 from tensorflow.keras.layers import Activation, Dense, Conv1D, Conv2D, MaxPooling1D, Flatten, Reshape
+from keras.regularizers import l2
 
 from .base import AUDIO_DIR, AUDIO_META_DIR, preprocess
+
 
 def train(num_epochs, batch_size, learning_rate, job_dir):
     train, val, test, labels_onehot = preprocess()
@@ -22,10 +24,10 @@ def train(num_epochs, batch_size, learning_rate, job_dir):
 
     model = keras.Sequential(
         [Dense(100, input_shape=loader.shape, activation="relu"),
-        Dense(100, W_regularizer=l2(0.01)),
-        Dense(labels_onehot.shape[1], activation="linear")]
-               
-    model.compile(loss='squared_hinge', optimizer='adadelta', metrics=['accuracy'])
+        Dense(100, kernel_regularizer=l2(0.01)),
+        Dense(labels_onehot.shape[1], activation="linear")])
+
+    model.compile(optimizer='adadelta', loss='squared_hinge', metrics=['accuracy'])
 
     model.fit_generator(SampleLoader(train, batch_size=batch_size), train.size/batch_size, epochs=num_epochs, **params)
 
