@@ -335,7 +335,7 @@ def build_sample_loader(audio_dir, Y, loader, extension="mp3"):
                 # print(self.tids, self.batch_foremost.value, batch_current, self.tids[batch_current], batch_size)
                 # print('queue', self.tids[batch_current], batch_size)
                 tids = np.array(self.tids[batch_current:batch_current+batch_size])
-
+            file = open('bad_tid.txt', 'a')    
             for i, tid in enumerate(tids):
                 try:
                     ffmpegout = self.loader.load(get_audio_path(audio_dir, tid, extension=extension))
@@ -344,9 +344,9 @@ def build_sample_loader(audio_dir, Y, loader, extension="mp3"):
                 except Exception as e:
                     print(f'Exception raised while trying to load track for tid {tid}')
                     print(str(e))
-                    file = open('bad_tid.txt', 'a')                     
+                                         
                     file.write(str(tid) + "\n")                       
-                    file.close() 
+            file.close() 
 
             with self.lock2:
                 while (batch_current - self.batch_rearmost.value) % self.tids.size > self.batch_size:
