@@ -248,8 +248,6 @@ class LibrosaLoader(RawAudioLoader):
     def _load(self, filepath):
         import librosa
         sr = self.sampling_rate if self.sampling_rate != SAMPLING_RATE else None
-        # kaiser_fast is 3x faster than kaiser_best
-        #x, sr = librosa.load(filepath, sr=sr, res_type='kaiser_fast')
         x, sr = librosa.load(filepath, sr=sr)
         return x
 
@@ -267,7 +265,6 @@ class PydubLoader(RawAudioLoader):
         song = AudioSegment.from_file(filepath)
         song = song.set_channels(1)
         x = song.get_array_of_samples()
-        # print(filepath) if song.channels != 2 else None
         return np.array(x)
 
 
@@ -275,23 +272,6 @@ class FfmpegLoader(RawAudioLoader):
     def _load(self, filepath):
         """Fastest and less CPU intensive loading method."""
         import subprocess as sp
-        # return np.fromstring(ffmpeg.input(
-        #     filepath,
-        #     fmt='s16le',
-        #     acodec='pcm_s16le',
-        #     ac='1',
-        #     ar=str(self.sampling_rate)
-        # # ), dtype="int16")
-        # command = ['ffmpeg',
-        #            '-i', filepath,
-        #            '-f', 's16le',
-        #            '-acodec', 'pcm_s16le',
-        #            '-ac', '1']  # channels: 2 for stereo, 1 for mono
-        # if self.sampling_rate != SAMPLING_RATE:
-        #     command.extend(['-ar', str(self.sampling_rate)])
-        # command.append('-')
-        # # 30s at 44.1 kHz ~= 1.3e6
-        # proc = sp.run(command, stdout=sp.PIPE, bufsize=10**7, stderr=sp.DEVNULL, check=True)
         with open(filepath.replace('mp3', 'fmpg'), 'rb') as f:
             return np.frombuffer(f.read(), dtype="int16")
 
@@ -332,17 +312,18 @@ def build_sample_loader(audio_dir, Y, loader, extension="mp3"):
                     batch_size = self.tids.size - self.batch_foremost.value
                     self.batch_foremost.value = 0
 
-                # print(self.tids, self.batch_foremost.value, batch_current, self.tids[batch_current], batch_size)
-                # print('queue', self.tids[batch_current], batch_size)
                 tids = np.array(self.tids[batch_current:batch_current+batch_size])
             file = open('bad_tid.txt', 'a')    
+            bad_tids = [5, 140, 141, 10]
             for i, tid in enumerate(tids):
+                if tid in bad_tids:
+                    continue
                 try:
                     ffmpegout = self.loader.load(get_audio_path(audio_dir, tid, extension=extension))
                     self.X[i] = ffmpegout
                     self.Y[i] = Y.loc[tid]
                 except Exception as e:
-                    print(f'Exception raised while trying to load track for tid {tid}')
+                    print('\nException raised while trying to load track for tid {tid}')
                     print(str(e))
                                          
                     file.write(str(tid) + "\n")                       
@@ -350,18 +331,9 @@ def build_sample_loader(audio_dir, Y, loader, extension="mp3"):
 
             with self.lock2:
                 while (batch_current - self.batch_rearmost.value) % self.tids.size > self.batch_size:
-                    # print('wait', indices[0], batch_current, self.batch_rearmost.value)
                     self.condition.wait()
                 self.condition.notify_all()
-                # print('yield', indices[0], batch_current, self.batch_rearmost.value)
                 self.batch_rearmost.value = batch_current
-                #import pdb; pdb.set_trace()
-                #print(self.Y[:batch_size])
-                # print(self.X[:batch_size])
-                # print(self.Y[:batch_size])
-                #return [(self.X[i], self.Y[i]) for i in range(batch_size)]
                 return self.X[:batch_size], self.Y[:batch_size]
-            #import pdb; pdb.set_trace()
-            #print("NONE")
 
     return SampleLoader
