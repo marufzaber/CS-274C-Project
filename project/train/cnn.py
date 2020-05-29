@@ -102,7 +102,7 @@ def train(num_epochs, batch_size, learning_rate, job_dir):
     model.add(BatchNormalization())
     model.add(MaxPooling1D(pool_size=2))
 
-    model.add(Dropout(rate=0.5))
+    model.add(Dropout(rate=0.33))
     #model.add(Reshape([79, 4]))
 
     # model.add(Permute([2, 1]))
@@ -122,7 +122,7 @@ def train(num_epochs, batch_size, learning_rate, job_dir):
     # model.add(Permute([2, 1]))
     model.add(LSTM(64))
     #model.add(Flatten())
-    model.add(Dense(16, activation="relu"))
+    model.add(Dense(32, activation="relu"))
     # model.add(Dense(100, activation="relu"))
     # model.add(Dense(100, activation="relu"))
     model.add(Dense(labels_onehot.shape[1], activation="softmax"))
