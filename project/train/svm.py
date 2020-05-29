@@ -2,6 +2,8 @@ import os
 import numpy as np
 
 from project.fma import utils
+from project.tools import graph_generator
+
 import multiprocessing.sharedctypes as sharedctypes
 import ctypes
 import tensorflow.keras as keras
@@ -29,6 +31,10 @@ def train(num_epochs, batch_size, learning_rate, job_dir):
 
     model.compile(optimizer='adadelta', loss='squared_hinge', metrics=['accuracy'])
 
-    model.fit_generator(SampleLoader(train, batch_size=batch_size), train.size/batch_size, epochs=num_epochs, **params)
+    history = model.fit_generator(SampleLoader(train, batch_size=batch_size), train.size/batch_size, epochs=num_epochs, **params)
 
     model.save(os.path.join(job_dir, 'model-export'), save_format='tf')
+
+    history_dict = history.history
+
+    history_dict.keys()
