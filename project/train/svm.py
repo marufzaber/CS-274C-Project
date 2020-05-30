@@ -7,7 +7,7 @@ from project.tools import graph_generator
 import multiprocessing.sharedctypes as sharedctypes
 import ctypes
 import tensorflow.keras as keras
-from tensorflow.keras.layers import Sequential, Dropout, Activation, Dense, Reshape
+from tensorflow.keras.layers import Dropout, Activation, Dense, Reshape
 from keras.regularizers import l2
 
 from .base import AUDIO_DIR, AUDIO_META_DIR, preprocess
@@ -24,7 +24,7 @@ def train(num_epochs, batch_size, learning_rate, job_dir):
 
     keras.backend.clear_session()
 
-    model = Sequential()
+    model = keras.Sequential()
 
     model.add(Dense(100, input_shape=loader.shape, activation="relu"))
     model.add(Dropout(0.5))
