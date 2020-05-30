@@ -24,10 +24,13 @@ def train(num_epochs, batch_size, learning_rate, job_dir):
 
     keras.backend.clear_session()
 
-    model = keras.Sequential(
-        [Dense(100, input_shape=loader.shape, activation="relu"),
-        Dense(100, kernel_regularizer=l2(0.01), activation="relu"),
-        Dense(labels_onehot.shape[1], activation="softmax")])
+    model = models.Sequential()
+
+    model.add(layers.Dense(100, input_shape=loader.shape, activation="relu"))
+    model.add(layers.Dropout(0.5))
+    model.add(layers.Dense(100, kernel_regularizer=l2(0.01), activation="relu"))
+    model.add(layers.Dropout(0.5))
+    model.add(layers.Dense(labels_onehot.shape[1], activation="sigmoid"))
 
     model.compile(optimizer='adadelta', loss='squared_hinge', metrics=['accuracy'])
 
@@ -38,3 +41,4 @@ def train(num_epochs, batch_size, learning_rate, job_dir):
     history_dict = history.history
 
     print(history_dict.keys())
+
