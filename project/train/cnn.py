@@ -86,21 +86,27 @@ def train(num_epochs, batch_size, learning_rate, job_dir):
     # model.add(Conv1D(filters=16, kernel_size=(1,), activation="relu"))
     # model.add(BatchNormalization())
     model.add(Reshape([640, 480]))
-    model.add(Conv1D(input_shape=shape, filters=4, kernel_size=3, activation="relu"))
+    model.add(Conv1D(input_shape=shape, filters=32, kernel_size=5, activation="relu"))
     model.add(BatchNormalization())
+    # model.add(Reshape([636, 32]))
 
     # model.add(Permute([2, 1]))
     model.add(MaxPooling1D(pool_size=2))
 
-    model.add(Conv1D(filters=4, kernel_size=2, activation="relu"))
+    model.add(Conv1D(filters=16, kernel_size=5, activation="relu"))
     model.add(BatchNormalization())
+    # model.add(Reshape([314, 16]))
+
 
     # model.add(Permute([2, 1]))
     model.add(MaxPooling1D(pool_size=2))
 
-    model.add(Conv1D(filters=4, kernel_size=2, activation="relu"))
+    model.add(Conv1D(filters=8, kernel_size=5, activation="relu"))
     model.add(BatchNormalization())
     model.add(MaxPooling1D(pool_size=2))
+
+    # model.add(Reshape([153, 4]))
+
 
     model.add(Dropout(rate=0.33))
     #model.add(Reshape([79, 4]))
