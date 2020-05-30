@@ -7,9 +7,8 @@ from project.tools import graph_generator
 import multiprocessing.sharedctypes as sharedctypes
 import ctypes
 import tensorflow.keras as keras
-from tensorflow.keras.layers import Dropout, Activation, Dense, Conv1D, Conv2D, MaxPooling1D, Flatten, Reshape
+from tensorflow.keras.layers import Sequential, Dropout, Activation, Dense, Reshape
 from keras.regularizers import l2
-from keras.models import Sequential
 
 from .base import AUDIO_DIR, AUDIO_META_DIR, preprocess
 
