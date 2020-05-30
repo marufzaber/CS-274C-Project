@@ -7,7 +7,7 @@ from project.tools import graph_generator
 import multiprocessing.sharedctypes as sharedctypes
 import ctypes
 import tensorflow.keras as keras
-from tensorflow.keras.layers import Activation, Dense, Conv1D, Conv2D, MaxPooling1D, Flatten, Reshape
+from tensorflow.keras.layers import Dropout, Activation, Dense, Conv1D, Conv2D, MaxPooling1D, Flatten, Reshape
 from keras.regularizers import l2
 from keras.models import Sequential
 
@@ -27,11 +27,11 @@ def train(num_epochs, batch_size, learning_rate, job_dir):
 
     model = Sequential()
 
-    model.add(layers.Dense(100, input_shape=loader.shape, activation="relu"))
-    model.add(layers.Dropout(0.5))
-    model.add(layers.Dense(100, kernel_regularizer=l2(0.01), activation="relu"))
-    model.add(layers.Dropout(0.5))
-    model.add(layers.Dense(labels_onehot.shape[1], activation="sigmoid"))
+    model.add(Dense(100, input_shape=loader.shape, activation="relu"))
+    model.add(Dropout(0.5))
+    model.add(Dense(100, kernel_regularizer=l2(0.01), activation="relu"))
+    model.add(Dropout(0.5))
+    model.add(Dense(labels_onehot.shape[1], activation="sigmoid"))
 
     model.compile(optimizer='adadelta', loss='squared_hinge', metrics=['accuracy'])
 
