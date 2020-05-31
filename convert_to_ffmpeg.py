@@ -39,15 +39,6 @@ def convert_to_ffmpeg(file_name_absolute):
 	with open(ffmpeg_absolute_path, 'w') as outf:
 		sp.run(command, stdout=outf, bufsize=10 ** 7, stderr=sp.DEVNULL, check=True)
 
-	#return np.fromstring(proc.stdout, dtype="int16")
-
-	# y, sr = librosa.load(file_name_absolute)
-	# spect = librosa.feature.melspectrogram(y=y, sr=sr,n_fft=2048, hop_length=512)
-	# spect = librosa.power_to_db(spect, ref=np.max)
-	#
-	# librosa.display.specshow(spect)
-	# pylab.savefig(mel_spectrogram_absolute_path, bbox_inches=None, pad_inches=0)
-	# pylab.close()
 
 if __name__ == "__main__":
 	try:
@@ -59,6 +50,7 @@ if __name__ == "__main__":
 						convert_to_ffmpeg(os.path.join(root, file))
 					except NoBackendError:
 						print(f"Error on file {file}")
-	except FileNotFoundError:
-		print('path variable AUDIO_DIR is not set')	
-		print("AUDIO_DIR  "+AUDIO_DIR)
+	except FileNotFoundError as e:
+		raise
+		#print('path variable AUDIO_DIR is not set')	
+		#print("AUDIO_DIR  "+AUDIO_DIR)
