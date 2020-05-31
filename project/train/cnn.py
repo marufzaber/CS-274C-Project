@@ -156,8 +156,12 @@ def train(num_epochs, batch_size, learning_rate, job_dir):
     # learning_rate_fn = keras.optimizers.schedules.InverseTimeDecay(
     # initial_learning_rate, decay_steps, decay_rate)
 
+    with open("history.out", "w") as f:
+        f.write("")
     while (total_epochs < num_epochs):
-        model.fit_generator(SampleLoader(train, batch_size=batch_size), train.size/batch_size, epochs=4, **params)
+        history = model.fit_generator(SampleLoader(train, batch_size=batch_size), train.size/batch_size, epochs=4, **params)
+        with open("history.out", "a") as f:
+            f.write(str(history.history.keys()))
         acc = model.evaluate_generator(SampleLoader(val, batch_size=batch_size), val.size, **params)
         total_epochs += 4
         print(f"***EPOCHS SO FAR***: {total_epochs}")
