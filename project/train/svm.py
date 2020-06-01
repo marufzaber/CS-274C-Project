@@ -8,7 +8,6 @@ import tensorflow.keras as keras
 from tensorflow.keras.layers import Dropout, Activation, Dense, Reshape, Flatten
 from tensorflow.keras import initializers
 from keras.regularizers import l2
-import psutil
 from tensorflow.keras.layers.experimental import RandomFourierFeatures
 from tensorflow.keras import initializers
 from sklearn.utils import shuffle
@@ -24,8 +23,8 @@ def train(num_epochs, batch_size, learning_rate, job_dir):
 
     train = shuffle(train)
 
-    NB_WORKER = psutil.cpu_count()  # number of usables CPUs
-    params = {'workers': NB_WORKER, 'max_queue_size': 10}
+    #NB_WORKER = psutil.cpu_count()  # number of usables CPUs
+    params = {'max_queue_size': 10}
 
     loader = utils.FfmpegLoader(sampling_rate=2000)
     SampleLoader = utils.build_sample_loader(AUDIO_DIR, labels_onehot, utils.FfmpegLoader())

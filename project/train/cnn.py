@@ -9,35 +9,35 @@ import tensorflow.keras as keras
 from tensorflow.keras.layers import Activation, Dense, Conv1D, Conv2D, Conv3D, LSTM, AveragePooling1D, MaxPooling1D, MaxPooling2D, MaxPooling3D, Flatten, Reshape,  Permute, BatchNormalization, Dropout
 
 from .base import AUDIO_DIR, AUDIO_META_DIR, preprocess
-
+from ..tools import graph_generator
 
 class MelSpectrogramLoader(utils.RawAudioLoader):
     def __init__(self, *args, **kwargs):
         super(MelSpectrogramLoader, self).__init__(*args, **kwargs)
         #self.shape = [480, 640, 4]
         #self.shape = [480, 640]
-        self.shape = [640, 480*4]
+        self.shape = [640, 480, 1]
 
     def _load(self, filepath):
         img3d = imageio.imread(filepath, format="PNG-PIL")
         #return np.average(img3d, axis=2).reshape([480, 640]).T
         #return img3d
-        img3d = img3d.transpose([1, 0, 2])
+        ret = img3d.transpose([1, 0, 2])
         #return ret
-        #return ret.mean(axis=2).reshape([640, 480, 1])
-
-        #ret = img3d.transpose([])
-        layer0 = img3d[:, :, 0]
-        layer1 = img3d[:, :, 1]
-        layer2 = img3d[:, :, 2]
-        layer3 = img3d[:, :, 3]
-        img2d = np.empty(self.shape, dtype=layer0.dtype)
-        img2d[:, 0::4] = layer0
-        img2d[:, 1::4] = layer1
-        img2d[:, 2::4] = layer2
-        img2d[:, 3::4] = layer3
-        return img2d
-        # img2d[0::4, :] = layer0
+        return ret.mean(axis=2).reshape([640, 480, 1])
+        #
+        # #ret = img3d.transpose([])
+        # layer0 = img3d[:, :, 0]
+        # layer1 = img3d[:, :, 1]
+        # layer2 = img3d[:, :, 2]
+        # layer3 = img3d[:, :, 3]
+        # img2d = np.empty(self.shape, dtype=layer0.dtype)
+        # img2d[:, 0::4] = layer0
+        # img2d[:, 1::4] = layer1
+        # img2d[:, 2::4] = layer2
+        # img2d[:, 3::4] = layer3
+        # return img2d
+        # # img2d[0::4, :] = layer0
         # img2d[1::4, :] = layer1
         # img2d[2::4, :] = layer2
         # img2d[3::4, :] = layer3
@@ -46,7 +46,7 @@ class MelSpectrogramLoader(utils.RawAudioLoader):
 
 
 
-def train(num_epochs, batch_size, learning_rate, job_dir):
+def train(num_epochs, batch_size, learning_rate, output_dir):
     train, val, test, labels_onehot = preprocess()
 
     #
@@ -67,7 +67,7 @@ def train(num_epochs, batch_size, learning_rate, job_dir):
     #     Dense(labels_onehot.shape[1], activation="softmax")]
     # )
     #
-    shape = [640, 480*4]
+    shape = [640, 480, 1]
     model = keras.Sequential()
     # model.add(Conv2D(input_shape=shape, filters=1, kernel_size=(5, 5), activation="relu"))
     # model.add(BatchNormalization())
@@ -92,15 +92,15 @@ def train(num_epochs, batch_size, learning_rate, job_dir):
 
     # model.add(Conv1D(filters=16, kernel_size=(1,), activation="relu"))
     # model.add(BatchNormalization())
-    #model.add(Reshape([640, 480]))
-    model.add(Conv1D(input_shape=shape, filters=8, kernel_size=3, activation="relu"))
+    model.add(Reshape([640, 480]))
+    model.add(Conv1D(input_shape=shape, filters=4, kernel_size=3, activation="relu"))
     model.add(BatchNormalization())
     # model.add(Reshape([636, 32]))
 
     # model.add(Permute([2, 1]))
     model.add(MaxPooling1D(pool_size=2))
 
-    model.add(Conv1D(filters=8, kernel_size=3, activation="relu"))
+    model.add(Conv1D(filters=4, kernel_size=2, activation="relu"))
     model.add(BatchNormalization())
     # model.add(Reshape([314, 16]))
 
@@ -108,14 +108,14 @@ def train(num_epochs, batch_size, learning_rate, job_dir):
     # model.add(Permute([2, 1]))
     model.add(MaxPooling1D(pool_size=2))
 
-    model.add(Conv1D(filters=4, kernel_size=3, activation="relu"))
+    model.add(Conv1D(filters=4, kernel_size=2, activation="relu"))
     model.add(BatchNormalization())
     model.add(MaxPooling1D(pool_size=2))
 
     # model.add(Reshape([153, 4]))
 
 
-    model.add(Dropout(rate=0.33))
+    model.add(Dropout(rate=0.5))
     #model.add(Reshape([79, 4]))
 
     # model.add(Permute([2, 1]))
@@ -135,7 +135,7 @@ def train(num_epochs, batch_size, learning_rate, job_dir):
     # model.add(Permute([2, 1]))
     model.add(LSTM(64))
     #model.add(Flatten())
-    model.add(Dense(32, activation="relu"))
+    model.add(Dense(16, activation="relu"))
     # model.add(Dense(100, activation="relu"))
     # model.add(Dense(100, activation="relu"))
     model.add(Dense(labels_onehot.shape[1], activation="softmax"))
@@ -156,17 +156,19 @@ def train(num_epochs, batch_size, learning_rate, job_dir):
     # learning_rate_fn = keras.optimizers.schedules.InverseTimeDecay(
     # initial_learning_rate, decay_steps, decay_rate)
 
-    with open("history.out", "w") as f:
-        f.write("")
     while (total_epochs < num_epochs):
-        history = model.fit_generator(SampleLoader(train, batch_size=batch_size), train.size/batch_size, epochs=4, **params)
-        with open("history.out", "a") as f:
-            f.write(str(history.history.keys()))
-        acc = model.evaluate_generator(SampleLoader(val, batch_size=batch_size), val.size, **params)
+        training_history = model.fit_generator(SampleLoader(train, batch_size=batch_size), train.size/batch_size, epochs=4, **params).history
+        val_loss, val_acc = model.evaluate_generator(SampleLoader(val, batch_size=batch_size), val.size, **params)
+        print("LEN")
+        print(len(training_history['accuracy']))
+        for ep in range(4):
+            print("EP")
+            print(ep)
+            print("TEPE")
+            print(total_epochs + ep + 1)
+            graph_generator.store_in_csv(total_epochs + ep + 1, batch_size, learning_rate, training_history['accuracy'][ep], training_history['loss'][ep], os.path.join(output_dir, "training_data.csv"))
+        graph_generator.store_in_csv(total_epochs + 4, batch_size, learning_rate, val_acc, val_loss, os.path.join(output_dir, "validation_data.csv"))
         total_epochs += 4
-        print(f"***EPOCHS SO FAR***: {total_epochs}")
-        print( "**** VAL ACC ****")
-        print(acc)
 
     #model.save(os.path.join(job_dir, 'model-export'), save_format='tf')
     # acc = model.evaluate_generator(SampleLoader(val, batch_size=batch_size), val.size, **params)

@@ -19,12 +19,12 @@ def generate(history_dict, file):
 
 def store_in_csv(epoch, batch_size, learning_rate, accuracy, loss, file):	
 	if path.exists(file) == False:
-		with open(file,'w') as file:		
+		with open(file,'w') as f:
 			line = "epoch , batch_size, learning_rate, accuracy, loss"
-			file.write(line)
-			file.write('\n')
+			f.write(line)
+			f.write('\n')
 
-	with open(file,'a') as file:
-		line = str(epoch) + " , " + str(batch_size) + " , " + str(learning_rate) + " , " + str(loss) + " , " + str(accuracy) 
-		file.write(line)
-		file.write('\n')
+	with open(file,'a') as f:
+		line = str(epoch) + " , " + str(batch_size) + " , " + str(learning_rate) + " , " + str(accuracy) + " , " + str(loss)
+		f.write(line)
+		f.write('\n')
