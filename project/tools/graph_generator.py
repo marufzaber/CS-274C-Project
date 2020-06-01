@@ -1,11 +1,7 @@
 #!/usr/bin/env python
 
 import matplotlib.pyplot as plt
-
-# Set the environment variable AUDIO_DIR before running this script.
-# This script will convert each mp3 file to its mel spectrogram
-# and store it in the same directory
-
+from os import path
 
 def generate(history_dict, file):
 	
@@ -21,4 +17,14 @@ def generate(history_dict, file):
 	plt.show()
 	plt.savefig(file)
 
-	
+def store_in_csv(epoch, batch_size, learning_rate, accuracy, loss, file):	
+	if path.exists(file) == False:
+		with open(file,'w') as file:		
+			line = "epoch , batch_size, learning_rate, accuracy, loss"
+			file.write(line)
+			file.write('\n')
+
+	with open(file,'a') as file:
+		line = str(epoch) + " , " + str(batch_size) + " , " + str(learning_rate) + " , " + str(loss) + " , " + str(accuracy) 
+		file.write(line)
+		file.write('\n')
