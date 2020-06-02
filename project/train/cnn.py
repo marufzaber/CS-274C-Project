@@ -108,7 +108,7 @@ def train(num_epochs, batch_size, learning_rate, output_dir):
     model.add(MaxPooling1D(pool_size=2))
     model.add(Reshape([79, 4]))
 
-    #model.add(Dropout(rate=0.5))
+    model.add(Dropout(rate=0.5))
     #model.add(Reshape([]))
     #model.add(SimpleRNN(64))
     model.add(LSTM(32, return_sequences=True))
