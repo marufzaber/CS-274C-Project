@@ -11,7 +11,7 @@ def generate(history_dict, file, labels_prefix='Training', color='b', epoch_step
 	epochs = [ep*epoch_step for ep in range(1, len(accuracy_values) + 1)]
 	#plt.plot(epochs, loss_values, f'{color}o', label=f'{labels_prefix} loss')
 	plt.plot(epochs, accuracy_values, color, label=f'{labels_prefix} accuracy')
-	plt.title('Loss and accuracy')
+	plt.title('Accuracy vs. Epochs')
 	plt.xlabel('Epochs')
 	plt.ylabel('Accuracy')
 	plt.ylim((0.00, 1.00))

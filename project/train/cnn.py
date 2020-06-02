@@ -17,27 +17,27 @@ class MelSpectrogramLoader(utils.RawAudioLoader):
         super(MelSpectrogramLoader, self).__init__(*args, **kwargs)
         #self.shape = [480, 640, 4]
         #self.shape = [480, 640]
-        self.shape = [640, 480, 1]
+        self.shape = [640, 480*4]
 
     def _load(self, filepath):
         img3d = imageio.imread(filepath, format="PNG-PIL")
         #return np.average(img3d, axis=2).reshape([480, 640]).T
         #return img3d
-        ret = img3d.transpose([1, 0, 2])
+        img3d = img3d.transpose([1, 0, 2])
         #return ret
-        return ret.mean(axis=2).reshape([640, 480, 1])
+        #return ret.mean(axis=2).reshape([640, 480, 1])
         #
         # #ret = img3d.transpose([])
-        # layer0 = img3d[:, :, 0]
-        # layer1 = img3d[:, :, 1]
-        # layer2 = img3d[:, :, 2]
-        # layer3 = img3d[:, :, 3]
-        # img2d = np.empty(self.shape, dtype=layer0.dtype)
-        # img2d[:, 0::4] = layer0
-        # img2d[:, 1::4] = layer1
-        # img2d[:, 2::4] = layer2
-        # img2d[:, 3::4] = layer3
-        # return img2d
+        layer0 = img3d[:, :, 0]
+        layer1 = img3d[:, :, 1]
+        layer2 = img3d[:, :, 2]
+        layer3 = img3d[:, :, 3]
+        img2d = np.empty(self.shape, dtype=layer0.dtype)
+        img2d[:, 0::4] = layer0
+        img2d[:, 1::4] = layer1
+        img2d[:, 2::4] = layer2
+        img2d[:, 3::4] = layer3
+        return img2d
         # # img2d[0::4, :] = layer0
         # img2d[1::4, :] = layer1
         # img2d[2::4, :] = layer2
@@ -83,10 +83,10 @@ def train(num_epochs, batch_size, learning_rate, output_dir):
             return output, [output]
 
     keras.backend.clear_session()
-    shape = [640, 480, 1]
+    shape = [640, 480*4]
     model = keras.Sequential()
 
-    model.add(Reshape([640, 480]))
+    model.add(Reshape([640, 480*4]))
     model.add(Conv1D(input_shape=shape, filters=4, kernel_size=3, activation="relu"))
     model.add(BatchNormalization())
     model.add(Reshape([638, 4]))
