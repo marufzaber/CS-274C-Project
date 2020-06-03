@@ -1,4 +1,4 @@
-from project.train import feedforward
+from project.train import svm
 
 if __name__ == '__main__':
-    feedforward.train(96, 100, 0.0005, 'model_output')
+    svm.train(32, 1000, 0.001, 'model_output')
