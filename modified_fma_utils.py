@@ -268,6 +268,16 @@ class PydubLoader(RawAudioLoader):
         return np.array(x)
 
 
+
+class FeatureLoader(object):
+    def __init__(self, features):
+        self.features = features
+        self.shape = (features.shape[1],)
+
+    def load(self, tid):
+        return self.features.loc[tid].to_numpy()
+        #return np.pad(self.features.loc[tid].to_numpy(), self.shape[0])
+
 class FfmpegLoader(RawAudioLoader):
     def _load(self, filepath):
         """Fastest and less CPU intensive loading method."""
@@ -276,7 +286,7 @@ class FfmpegLoader(RawAudioLoader):
             return np.frombuffer(f.read(), dtype="int16")
 
 
-def build_sample_loader(audio_dir, Y, loader, extension="mp3"):
+def build_sample_loader(audio_dir, Y, loader, extension="mp3", loader_type="filepath"):
 
     class SampleLoader:
 
@@ -316,6 +326,13 @@ def build_sample_loader(audio_dir, Y, loader, extension="mp3"):
             file = open('bad_tid.txt', 'a')    
             bad_tids = [5, 140, 141, 10]
             for i, tid in enumerate(tids):
+
+                # try:
+                if loader_type == "filepath":
+                    self.X[i] = self.loader.load(get_audio_path(audio_dir, tid, extension=extension))
+                else:
+                    self.X[i] = self.loader.load(tid)
+                self.Y[i] = Y.loc[tid]
                 if tid in bad_tids:
                     continue
                 try:
