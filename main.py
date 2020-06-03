@@ -1,4 +1,4 @@
-from project.train import cnn
+from project.train import feedforward
 
 if __name__ == '__main__':
-    cnn.train(16, 100, 0.001, 'model_output')
+    feedforward.train(96, 100, 0.0005, 'model_output')
