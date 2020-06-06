@@ -117,6 +117,7 @@ def train(num_epochs, batch_size, learning_rate, output_dir):
     model.add(Flatten())
     model.add(Dense(100, activation="relu"))
     model.add(Dense(100, activation="relu"))
+    model.add(Dense(100, activation="relu"))
     model.add(Dense(labels_onehot.shape[1], activation="softmax"))
     optimizer = keras.optimizers.Adam(lr=learning_rate)#, momentum=0.9, nesterov=True)
     model.compile(optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
@@ -134,7 +135,7 @@ def train(num_epochs, batch_size, learning_rate, output_dir):
         total_epochs += 4
     graph_generator.generate_from_csv(os.path.join(output_dir, "training_data.csv"), os.path.join(output_dir, "training_plot.eps"), labels_prefix='Training', color='r')
     graph_generator.generate_from_csv(os.path.join(output_dir, "validation_data.csv"), os.path.join(output_dir, "combined_plot.eps"), labels_prefix='Validation', color='b', epoch_step=4)
-    print(model.summary(to_file=os.path.join(output_dir, 'model_summary.txt')))
+    print(model.summary())
 
     #model.save(os.path.join(job_dir, 'model-export'), save_format='tf')
     #loss = model.evaluate_generator(SampleLoader(test, batch_size=64), test.size, **params)
