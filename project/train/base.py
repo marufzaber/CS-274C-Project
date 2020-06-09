@@ -27,14 +27,19 @@ def preprocess():
     assert echonest.index.isin(tracks.index).all()
 
     tracks.shape, features.shape, echonest.shape
-
-    labels_onehot = LabelBinarizer().fit_transform(tracks['track', 'genre_top'])
+    lb = LabelBinarizer()
+    labels_onehot = lb.fit_transform(tracks['track', 'genre_top'])
+    labels_mapping = lb.inverse_transform(np.identity(labels_onehot.shape[1]))
+    
+    
     labels_onehot = pd.DataFrame(labels_onehot, index=tracks.index)
 
 
     train = tracks.index[tracks['set', 'split'] == 'training']
-    val = tracks.index[tracks['set', 'split'] == 'validation']
+    val = tracks[tracks['set', 'split'] == 'validation'].index
     test = tracks.index[tracks['set', 'split'] == 'test']
+    
+    labels_onehot_val = labels_onehot[small][tracks['set', 'split'] == 'validation'].to_numpy()
 
     print('{} training examples, {} validation examples, {} testing examples'.format(*map(len, [train, val, test])))
 
@@ -43,4 +48,4 @@ def preprocess():
     train = tracks[training & ~bad].index
 
 
-    return train, val, test, labels_onehot
+    return train, val, test, labels_onehot, labels_onehot_val, labels_mapping, lb

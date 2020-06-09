@@ -5,8 +5,10 @@ import numpy as np
 from project.fma import utils
 import multiprocessing.sharedctypes as sharedctypes
 import ctypes
+import tensorflow as tf
 import tensorflow.keras as keras
 from tensorflow.keras.layers import Activation, Dense, Conv1D, Conv2D, Conv3D, LSTM, AveragePooling1D, MaxPooling1D, MaxPooling2D, MaxPooling3D, Flatten, Reshape,  Permute, BatchNormalization, Dropout
+from tensorflow.math import confusion_matrix
 
 from .base import AUDIO_DIR, AUDIO_META_DIR, preprocess
 from ..tools import graph_generator
@@ -47,7 +49,7 @@ class MelSpectrogramLoader(utils.RawAudioLoader):
 
 
 def train(num_epochs, batch_size, learning_rate, output_dir):
-    train, val, test, labels_onehot = preprocess()
+    train, val, test, labels_onehot, labels_onehot_val, labels_mapping, labels_binarizer = preprocess()
 
     #
     # Keras parameters.
@@ -158,14 +160,16 @@ def train(num_epochs, batch_size, learning_rate, output_dir):
 
     while (total_epochs < num_epochs):
         training_history = model.fit_generator(SampleLoader(train, batch_size=batch_size), train.size/batch_size, epochs=4, **params).history
-        val_loss, val_acc = model.evaluate_generator(SampleLoader(val, batch_size=batch_size), val.size, **params)
-        print("LEN")
-        print(len(training_history['accuracy']))
+        val_loss, val_acc = model.evaluate_generator(SampleLoader(val, batch_size=batch_size), val.size/batch_size, **params)
+        #predictions = model.predict_generator(SampleLoader(val, batch_size=batch_size), val.size/batch_size, **params)
+        #prediction_labels = tf.argmax(predictions, axis=1)
+        #true_labels = tf.argmax(labels_onehot_val, axis=1)
+        #import pdb; pdb.set_trace()
+        #conf = confusion_matrix(true_labels, prediction_labels)
+        #print(conf)
+        #print(labels_mapping)
+        
         for ep in range(4):
-            print("EP")
-            print(ep)
-            print("TEPE")
-            print(total_epochs + ep + 1)
             graph_generator.store_in_csv(total_epochs + ep + 1, batch_size, learning_rate, training_history['accuracy'][ep], training_history['loss'][ep], os.path.join(output_dir, "training_data.csv"))
         graph_generator.store_in_csv(total_epochs + 4, batch_size, learning_rate, val_acc, val_loss, os.path.join(output_dir, "validation_data.csv"))
         total_epochs += 4
