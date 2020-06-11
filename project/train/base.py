@@ -43,4 +43,4 @@ def preprocess():
     train = tracks[training & ~bad].index
 
 
-    return train, val, test, labels_onehot
+    return train, val, test, labels_onehot, features
